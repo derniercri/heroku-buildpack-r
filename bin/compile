@@ -218,10 +218,10 @@ topic "Configuring build environment..."
 # make inventory of current contents of /app (before sync)
 # so when copied back, these files can be excluded
 pushd /app > /dev/null
-topic pushd /app > /dev/null
-topic find . -maxdepth 1 -type d
-topic find . -maxdepth 1 -type d | grep -v '^.$'
-topic find . -maxdepth 1 -type d | grep -v '^.$' | cut -c 2- > "${BUILD_DIR}/.rsync-excludes"
+topic `pushd /app > /dev/null`
+topic `find . -maxdepth 1 -type d`
+topic `find . -maxdepth 1 -type d | grep -v '^.$'`
+topic `find . -maxdepth 1 -type d | grep -v '^.$' | cut -c 2- > "${BUILD_DIR}/.rsync-excludes"`
 find . -maxdepth 1 -type d | grep -v '^.$' | cut -c 2- > "${BUILD_DIR}/.rsync-excludes"
 find . -maxdepth 1 -type f | cut -c 2- >> "${BUILD_DIR}/.rsync-excludes"
 popd > /dev/null
