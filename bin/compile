@@ -217,84 +217,83 @@ topic "Configuring build environment..."
 
 # make inventory of current contents of /app (before sync)
 # so when copied back, these files can be excluded
-# pushd /app > /dev/null
-# find . -maxdepth 1 -type d | grep -v '^.$' | cut -c 2- > "${BUILD_DIR}/.rsync-excludes"
-# find . -maxdepth 1 -type f | cut -c 2- >> "${BUILD_DIR}/.rsync-excludes"
-# popd > /dev/null
+topic `pushd /app`
+pushd /app > /dev/null
+find . -maxdepth 1 -type d | grep -v '^.$' | cut -c 2- > "${BUILD_DIR}/.rsync-excludes"
+find . -maxdepth 1 -type f | cut -c 2- >> "${BUILD_DIR}/.rsync-excludes"
+popd > /dev/null
 
 # copy everything to /app
-# rsync -a "${BUILD_DIR}/" /app/
+rsync -a "${BUILD_DIR}/" /app/
 
 #----------------------------------------------------------------------
 # slug compile
 
 # look for Aptfile; install the packages contained
-# if [ -f Aptfile ]; then
-#   echo
-#   notice "WARNING: Use of the Aptfile file is NOT recommended and will be deprecated in future."
-#   echo
-#   echo "For greater control and flexibility consider using the Heroku" | indent
-#   echo "container stack together with the heroku-docker-r implementation." | indent
-#   echo "See https://github.com/virtualstaticvoid/heroku-docker-r for more information." | indent
-#   echo
+if [ -f Aptfile ]; then
+  echo
+  notice "WARNING: Use of the Aptfile file is NOT recommended and will be deprecated in future."
+  echo
+  echo "For greater control and flexibility consider using the Heroku" | indent
+  echo "container stack together with the heroku-docker-r implementation." | indent
+  echo "See https://github.com/virtualstaticvoid/heroku-docker-r for more information." | indent
+  echo
 
-#   packages=""
-#   while IFS='' read -r package || [[ -n "$package" ]]; do
-#     packages="$packages $package"
-#   done < Aptfile
+  packages=""
+  while IFS='' read -r package || [[ -n "$package" ]]; do
+    packages="$packages $package"
+  done < Aptfile
 
-#   in_chroot_sudo /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get update -qq" 2>&1 | indent
-#   in_chroot_sudo /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get -qy install $packages" 2>&1 | indent
-#   in_chroot_sudo /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get -q clean" 2>&1 > /dev/null
-#   in_chroot_sudo rm -rf /var/lib/apt/lists/* 2>&1 > /dev/null
-# fi
+  in_chroot_sudo /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get update -qq" 2>&1 | indent
+  in_chroot_sudo /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get -qy install $packages" 2>&1 | indent
+  in_chroot_sudo /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get -q clean" 2>&1 > /dev/null
+  in_chroot_sudo rm -rf /var/lib/apt/lists/* 2>&1 > /dev/null
+fi
 
 # execute init.R
-topic "Executing ${INIT_FILE} file"
-in_chroot /bin/bash -c "/app/R/bin/R --no-save --slave --file=${INIT_FILE}" 2>&1 | indent
-# if [ ! -z ${INIT_FILE+x} ]; then
-#   topic "Executing ${INIT_FILE} file"
-#   in_chroot /bin/bash -c "cd /app && /app/R/bin/R --no-save --quiet --slave --file=${INIT_FILE}" 2>&1 | indent
+if [ ! -z ${INIT_FILE+x} ]; then
+  topic "Executing ${INIT_FILE} file"
+  in_chroot /bin/bash -c "cd /app && /app/R/bin/R --no-save --quiet --slave --file=${INIT_FILE}" 2>&1 | indent
 
-#   #
-#   # any libarary dependencies, installed via Aptfile, which are referenced by the R packages installed by init.R
-#   # will need to be "packaged" into the slug since the chroot isn't included at runtime.
-#   #
-#   # this script uses ldd to inspect each .so file under the /app/R/site-library to get the referenced .so files
-#   # to copy them to /app/R/lib/R/lib so that they can be found at runtime.
-#   #
-#   # any dynamic dependencies, such as a command line utility or any other files, won't be included in this
-#   # process, hence the warnings regarding the use of the Aptfile. YMMV
-#   #
-#   if [ -f Aptfile ]; then
-#     echo "Attempting to locate system dependencies" | indent
-#     in_chroot /usr/bin/ruby /app/R/etc/copy_libs.rb "/app/R/site-library/**/*.so" 2>&1 | indent
-#   fi
-# fi
+  #
+  # any libarary dependencies, installed via Aptfile, which are referenced by the R packages installed by init.R
+  # will need to be "packaged" into the slug since the chroot isn't included at runtime.
+  #
+  # this script uses ldd to inspect each .so file under the /app/R/site-library to get the referenced .so files
+  # to copy them to /app/R/lib/R/lib so that they can be found at runtime.
+  #
+  # any dynamic dependencies, such as a command line utility or any other files, won't be included in this
+  # process, hence the warnings regarding the use of the Aptfile. YMMV
+  #
+  if [ -f Aptfile ]; then
+    echo "Attempting to locate system dependencies" | indent
+    in_chroot /usr/bin/ruby /app/R/etc/copy_libs.rb "/app/R/site-library/**/*.so" 2>&1 | indent
+  fi
+fi
 
 # bootstrap packrat?
-# if [ -f packrat/init.R ]; then
-#   topic "Bootstrapping packrat"
-#   in_chroot /bin/bash -c "cd /app && /app/R/bin/R --no-init-file --no-save --quiet --slave --file=packrat/init.R --args --bootstrap-packrat" 2>&1 | indent
+if [ -f packrat/init.R ]; then
+  topic "Bootstrapping packrat"
+  in_chroot /bin/bash -c "cd /app && /app/R/bin/R --no-init-file --no-save --quiet --slave --file=packrat/init.R --args --bootstrap-packrat" 2>&1 | indent
 
-#   # system dependencies?
-#   if [ -f Aptfile ]; then
-#     echo "Attempting to locate system dependencies" | indent
-#     in_chroot /usr/bin/ruby /app/R/etc/copy_libs.rb "/app/packrat/**/*.so" 2>&1 | indent
-#   fi
-# fi
+  # system dependencies?
+  if [ -f Aptfile ]; then
+    echo "Attempting to locate system dependencies" | indent
+    in_chroot /usr/bin/ruby /app/R/etc/copy_libs.rb "/app/packrat/**/*.so" 2>&1 | indent
+  fi
+fi
 
 # renv packrat?
-# if [ -f renv/activate.R ]; then
-#   topic "Bootstrapping renv"
-#   in_chroot /bin/bash -c "cd /app && /app/R/bin/R --no-save --quiet --slave -e 'renv::restore()'" 2>&1 | indent
+if [ -f renv/activate.R ]; then
+  topic "Bootstrapping renv"
+  in_chroot /bin/bash -c "cd /app && /app/R/bin/R --no-save --quiet --slave -e 'renv::restore()'" 2>&1 | indent
 
-#   # system dependencies?
-#   if [ -f Aptfile ]; then
-#     echo "Attempting to locate system dependencies" | indent
-#     in_chroot /usr/bin/ruby /app/R/etc/copy_libs.rb "/app/renv/**/*.so" 2>&1 | indent
-#   fi
-# fi
+  # system dependencies?
+  if [ -f Aptfile ]; then
+    echo "Attempting to locate system dependencies" | indent
+    in_chroot /usr/bin/ruby /app/R/etc/copy_libs.rb "/app/renv/**/*.so" 2>&1 | indent
+  fi
+fi
 
 #----------------------------------------------------------------------
 # final bits
@@ -302,9 +301,9 @@ in_chroot /bin/bash -c "/app/R/bin/R --no-save --slave --file=${INIT_FILE}" 2>&1
 topic "Finalising environment..."
 
 # copy new and changed files back from /app (excluding original contents of /app)
-# pushd /app > /dev/null
-# rsync -a --exclude-from="${BUILD_DIR}/.rsync-excludes" . "${BUILD_DIR}/"
-# popd > /dev/null
+pushd /app > /dev/null
+rsync -a --exclude-from="${BUILD_DIR}/.rsync-excludes" . "${BUILD_DIR}/"
+popd > /dev/null
 
 # for backward compatibility, include wrappers for fakechroot, fakeroot and chroot
 cp "${BUILDPACK_DIR}/bin/wrap_fakechroot" bin/fakechroot
@@ -313,7 +312,7 @@ cp "${BUILDPACK_DIR}/bin/wrap_chroot" bin/chroot
 
 # clean ups (remove unneeded files, etc)
 rm -rf fakechroot
-# rm .rsync-excludes
+rm .rsync-excludes
 rm R/etc/copy_libs.rb
 
 #----------------------------------------------------------------------
