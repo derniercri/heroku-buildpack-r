@@ -250,7 +250,8 @@ topic "Configuring build environment..."
 # fi
 
 # execute init.R
-bin/R --no-save --slave --file=./init.R
+topic "Executing init.R file"
+R --no-save --slave --file=./init.R
 # if [ ! -z ${INIT_FILE+x} ]; then
 #   topic "Executing ${INIT_FILE} file"
 #   in_chroot /bin/bash -c "cd /app && /app/R/bin/R --no-save --quiet --slave --file=${INIT_FILE}" 2>&1 | indent
