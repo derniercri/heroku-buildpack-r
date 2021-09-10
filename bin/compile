@@ -250,8 +250,6 @@ topic "Configuring build environment..."
 # fi
 
 # execute init.R
-topic "Executing init.R file"
-R --no-save --slave --file=./init.R
 # if [ ! -z ${INIT_FILE+x} ]; then
 #   topic "Executing ${INIT_FILE} file"
 #   in_chroot /bin/bash -c "cd /app && /app/R/bin/R --no-save --quiet --slave --file=${INIT_FILE}" 2>&1 | indent
@@ -333,6 +331,10 @@ EOL
 
 # write export script for other buildpacks
 cp "${BUILDPACK_DIR}/bin/env.sh" "${BUILDPACK_DIR}/export"
+
+topic "Executing init.R file"
+R --no-save --slave --file=./init.R
+
 
 #----------------------------------------------------------------------
 # cache outputs
