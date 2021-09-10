@@ -219,9 +219,10 @@ topic "Configuring build environment..."
 # so when copied back, these files can be excluded
 pushd /app > /dev/null
 topic pushd /app > /dev/null
+topic find . -maxdepth 1 -type d
+topic find . -maxdepth 1 -type d | grep -v '^.$'
+topic find . -maxdepth 1 -type d | grep -v '^.$' | cut -c 2- > "${BUILD_DIR}/.rsync-excludes"
 find . -maxdepth 1 -type d | grep -v '^.$' | cut -c 2- > "${BUILD_DIR}/.rsync-excludes"
-topic pushd find . -maxdepth 1 -type d
-topic pushd find . -maxdepth 1 -type d | grep -v '^.$'
 find . -maxdepth 1 -type f | cut -c 2- >> "${BUILD_DIR}/.rsync-excludes"
 popd > /dev/null
 
