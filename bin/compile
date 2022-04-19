@@ -64,14 +64,14 @@ START_TIME="$(date -u +%s)"
 
 # define static vars
 BUILDPACK_NAME=heroku-buildpack-r
-R_VERSION=4.1.1
+R_VERSION=4.1.2
 
 # NB: undocumented feature ~ used for testing different versions
 # E.g. set via heroku config:set BUILDPACK_VERSION=test
 BUILDPACK_VERSION=${BUILDPACK_VERSION:-latest}
 
 # NB: change to bust cache
-CACHE_KEY="${BUILDPACK_VERSION}-${HEROKU_STACK}-27ac154h"
+CACHE_KEY="${BUILDPACK_VERSION}-${HEROKU_STACK}-bae05ea1"
 
 # get cache file names
 cache_filename_for rootfs.tar.gz ROOTFS_OUTPUTS

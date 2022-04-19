@@ -172,7 +172,7 @@ An example command for the scheduler to run `prog.R`, would be `R --file=prog.R 
 
 ### R Versions
 
-The buildpack currently supports `R 4.1.1`. This is updated periodically when new versions of R are released.
+The buildpack currently supports `R 4.1.2`. This is updated periodically when new versions of R are released.
 
 ### Slug Compilation vs Runtime use of `chroot`
 
